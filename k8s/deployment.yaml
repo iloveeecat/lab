@@ -1,0 +1,22 @@
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: ip-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ip-app
+  template:
+    metadata:
+      labels:
+        app: ip-app
+    spec:
+      containers:
+        - name: ip-app
+          image: itsnotkatya/ip-app:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: TYPE
+              value: "API1"
