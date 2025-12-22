@@ -1,28 +1,23 @@
-import os
-import httpx
 from fastapi import FastAPI, HTTPException
+from app.config import API_TYPE
+from app.services.ip import IpApiService
+from app.services.json import JsonIpService
+from app.services.base import IPService
 
 app = FastAPI()
 
-@app.get("/")
-async def get_my_ip():
-    api_type = os.environ.get("TYPE", "API1")
-
-    if api_type == "API1":
-        url = "http://ip-api.com/json/"
-        async with httpx.AsyncClient() as client:
-            response = await client.get(url)
-            data = response.json()
-            ip = data.get("query")
-
-    elif api_type == "API2":
-        url = "https://jsonip.com"
-        async with httpx.AsyncClient() as client:
-            response = await client.get(url)
-            data = response.json()
-            ip = data.get("ip")
-
+def get_ip_service() -> IPService:
+    if API_TYPE == "API1":
+        return IpApiService()
+    elif API_TYPE == "API2":
+        return JsonIpService()
     else:
         raise HTTPException(status_code=400)
 
-    return {"myIP": ip, "apiType": api_type}
+
+@app.get("/")
+async def get_my_ip():
+    service = get_ip_service()
+    ip = await service.get_ip()
+    return {"myIP": ip, "apiType": API_TYPE}
+
